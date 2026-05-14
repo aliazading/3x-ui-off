@@ -782,23 +782,28 @@ update_x-ui() {
         _fail "ERROR: Current x-ui version: unknown"
     fi
 
-    echo -e "${green}Downloading new x-ui version...${plain}"
-
-    tag_version=$(${curl_bin} -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" 2> /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [[ ! -n "$tag_version" ]]; then
-        echo -e "${yellow}Trying to fetch version with IPv4...${plain}"
-        tag_version=$(${curl_bin} -4 -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [[ -f "${cur_dir}/x-ui-linux-$(arch).tar.gz" ]]; then
+        echo -e "${green}Found local x-ui-linux-$(arch).tar.gz, using it for update.${plain}"
+        cp -f ${cur_dir}/x-ui-linux-$(arch).tar.gz ${xui_folder}-linux-$(arch).tar.gz
+        tag_version="local"
+    else
+        echo -e "${green}Downloading new x-ui version...${plain}"
+        tag_version=$(${curl_bin} -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" 2> /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if [[ ! -n "$tag_version" ]]; then
-            _fail "ERROR: Failed to fetch x-ui version, it may be due to GitHub API restrictions, please try it later"
+            echo -e "${yellow}Trying to fetch version with IPv4...${plain}"
+            tag_version=$(${curl_bin} -4 -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+            if [[ ! -n "$tag_version" ]]; then
+                _fail "ERROR: Failed to fetch x-ui version, it may be due to GitHub API restrictions, please try it later"
+            fi
         fi
-    fi
-    echo -e "Got x-ui latest version: ${tag_version}, beginning the installation..."
-    ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo -e "${yellow}Trying to fetch version with IPv4...${plain}"
-        ${curl_bin} -4fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
+        echo -e "Got x-ui latest version: ${tag_version}, beginning the installation..."
+        ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
         if [[ $? -ne 0 ]]; then
-            _fail "ERROR: Failed to download x-ui, please be sure that your server can access GitHub"
+            echo -e "${yellow}Trying to fetch version with IPv4...${plain}"
+            ${curl_bin} -4fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
+            if [[ $? -ne 0 ]]; then
+                _fail "ERROR: Failed to download x-ui, please be sure that your server can access GitHub"
+            fi
         fi
     fi
 
@@ -858,13 +863,18 @@ update_x-ui() {
 
     chmod +x x-ui bin/xray-linux-$(arch) > /dev/null 2>&1
 
-    echo -e "${green}Downloading and installing x-ui.sh script...${plain}"
-    ${curl_bin} -fLRo /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        echo -e "${yellow}Trying to fetch x-ui with IPv4...${plain}"
-        ${curl_bin} -4fLRo /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh > /dev/null 2>&1
+    if [[ -f "${cur_dir}/x-ui.sh" ]]; then
+        echo -e "${green}Found local x-ui.sh, using it.${plain}"
+        cp -f ${cur_dir}/x-ui.sh /usr/bin/x-ui
+    else
+        echo -e "${green}Downloading and installing x-ui.sh script...${plain}"
+        ${curl_bin} -fLRo /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
-            _fail "ERROR: Failed to download x-ui.sh script, please be sure that your server can access GitHub"
+            echo -e "${yellow}Trying to fetch x-ui with IPv4...${plain}"
+            ${curl_bin} -4fLRo /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh > /dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                _fail "ERROR: Failed to download x-ui.sh script, please be sure that your server can access GitHub"
+            fi
         fi
     fi
 
@@ -881,12 +891,17 @@ update_x-ui() {
     fi
 
     if [[ $release == "alpine" ]]; then
-        echo -e "${green}Downloading and installing startup unit x-ui.rc...${plain}"
-        ${curl_bin} -fLRo /etc/init.d/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.rc > /dev/null 2>&1
-        if [[ $? -ne 0 ]]; then
-            ${curl_bin} -4fLRo /etc/init.d/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.rc > /dev/null 2>&1
+        if [[ -f "${cur_dir}/x-ui.rc" ]]; then
+            echo -e "${green}Found local x-ui.rc, using it.${plain}"
+            cp -f ${cur_dir}/x-ui.rc /etc/init.d/x-ui
+        else
+            echo -e "${green}Downloading and installing startup unit x-ui.rc...${plain}"
+            ${curl_bin} -fLRo /etc/init.d/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.rc > /dev/null 2>&1
             if [[ $? -ne 0 ]]; then
-                _fail "ERROR: Failed to download startup unit x-ui.rc, please be sure that your server can access GitHub"
+                ${curl_bin} -4fLRo /etc/init.d/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.rc > /dev/null 2>&1
+                if [[ $? -ne 0 ]]; then
+                    _fail "ERROR: Failed to download startup unit x-ui.rc, please be sure that your server can access GitHub"
+                fi
             fi
         fi
         chmod +x /etc/init.d/x-ui > /dev/null 2>&1
@@ -933,23 +948,40 @@ update_x-ui() {
                     ;;
             esac
 
-            # If service file not found in tar.gz, download from GitHub
+            # If service file not found in tar.gz, download from GitHub or use local
             if [ "$service_installed" = false ]; then
-                echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
                 case "${release}" in
                     ubuntu | debian | armbian)
-                        ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.debian > /dev/null 2>&1
+                        if [[ -f "${cur_dir}/x-ui.service.debian" ]]; then
+                            echo -e "${green}Found local x-ui.service.debian, using it.${plain}"
+                            cp -f ${cur_dir}/x-ui.service.debian ${xui_service}/x-ui.service
+                        else
+                            echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
+                            ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.debian > /dev/null 2>&1
+                        fi
                         ;;
                     arch | manjaro | parch)
-                        ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.arch > /dev/null 2>&1
+                        if [[ -f "${cur_dir}/x-ui.service.arch" ]]; then
+                            echo -e "${green}Found local x-ui.service.arch, using it.${plain}"
+                            cp -f ${cur_dir}/x-ui.service.arch ${xui_service}/x-ui.service
+                        else
+                            echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
+                            ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.arch > /dev/null 2>&1
+                        fi
                         ;;
                     *)
-                        ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.rhel > /dev/null 2>&1
+                        if [[ -f "${cur_dir}/x-ui.service.rhel" ]]; then
+                            echo -e "${green}Found local x-ui.service.rhel, using it.${plain}"
+                            cp -f ${cur_dir}/x-ui.service.rhel ${xui_service}/x-ui.service
+                        else
+                            echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
+                            ${curl_bin} -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.rhel > /dev/null 2>&1
+                        fi
                         ;;
                 esac
 
-                if [[ $? -ne 0 ]]; then
-                    echo -e "${red}Failed to install x-ui.service from GitHub${plain}"
+                if [[ $? -ne 0 && ! -f "${xui_service}/x-ui.service" ]]; then
+                    echo -e "${red}Failed to install x-ui.service${plain}"
                     exit 1
                 fi
             fi
