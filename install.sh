@@ -74,31 +74,63 @@ is_port_in_use() {
 }
 
 install_base() {
+    local deps=(cron curl tar tzdata socat ca-certificates openssl)
+    local install_deps=()
+
+    # Special case for cron on different distros
+    local cron_pkg="cron"
+    case "${release}" in
+        fedora | amzn | virtuozzo | rhel | almalinux | rocky | ol | centos | arch | manjaro | parch)
+            cron_pkg="cronie"
+            ;;
+        alpine)
+            cron_pkg="dcron"
+            ;;
+    esac
+
+    # Check which dependencies are missing
+    for dep in "${deps[@]}"; do
+        if [[ "${dep}" == "cron" ]]; then
+            if ! command -v crontab > /dev/null 2>&1; then
+                install_deps+=("${cron_pkg}")
+            fi
+        elif ! command -v "${dep}" > /dev/null 2>&1; then
+            install_deps+=("${dep}")
+        fi
+    done
+
+    if [[ ${#install_deps[@]} -eq 0 ]]; then
+        echo -e "${green}All dependencies are already installed. Skipping apt-get install.${plain}"
+        return 0
+    fi
+
+    echo -e "${green}Installing missing dependencies: ${install_deps[*]}${plain}"
+
     case "${release}" in
         ubuntu | debian | armbian)
-            apt-get update && apt-get install -y -q cron curl tar tzdata socat ca-certificates openssl
+            apt-get update && apt-get install -y -q "${install_deps[@]}"
             ;;
         fedora | amzn | virtuozzo | rhel | almalinux | rocky | ol)
-            dnf -y update && dnf install -y -q cronie curl tar tzdata socat ca-certificates openssl
+            dnf -y update && dnf install -y -q "${install_deps[@]}"
             ;;
         centos)
             if [[ "${VERSION_ID}" =~ ^7 ]]; then
-                yum -y update && yum install -y cronie curl tar tzdata socat ca-certificates openssl
+                yum -y update && yum install -y "${install_deps[@]}"
             else
-                dnf -y update && dnf install -y -q cronie curl tar tzdata socat ca-certificates openssl
+                dnf -y update && dnf install -y -q "${install_deps[@]}"
             fi
             ;;
         arch | manjaro | parch)
-            pacman -Syu && pacman -Syu --noconfirm cronie curl tar tzdata socat ca-certificates openssl
+            pacman -Syu && pacman -Syu --noconfirm "${install_deps[@]}"
             ;;
         opensuse-tumbleweed | opensuse-leap)
-            zypper refresh && zypper -q install -y cron curl tar timezone socat ca-certificates openssl
+            zypper refresh && zypper -q install -y "${install_deps[@]}"
             ;;
         alpine)
-            apk update && apk add dcron curl tar tzdata socat ca-certificates openssl
+            apk update && apk add "${install_deps[@]}"
             ;;
         *)
-            apt-get update && apt-get install -y -q cron curl tar tzdata socat ca-certificates openssl
+            apt-get update && apt-get install -y -q "${install_deps[@]}"
             ;;
     esac
 }
