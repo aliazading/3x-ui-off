@@ -889,6 +889,7 @@ install_x-ui() {
     if [[ -f "${cur_dir}/x-ui.sh" ]]; then
         echo -e "${green}Found local x-ui.sh, using it.${plain}"
         cp -f ${cur_dir}/x-ui.sh /usr/bin/x-ui-temp
+        sed -i 's/\r$//' /usr/bin/x-ui-temp
     else
         curl -4fLRo /usr/bin/x-ui-temp https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
         if [[ $? -ne 0 ]]; then
@@ -912,6 +913,7 @@ install_x-ui() {
     rm x-ui-linux-$(arch).tar.gz -f
 
     cd x-ui
+    sed -i 's/\r$//' x-ui.sh
     chmod +x x-ui
     chmod +x x-ui.sh
 
@@ -1041,6 +1043,7 @@ install_x-ui() {
 
         if [ "$service_installed" = true ]; then
             echo -e "${green}Setting up systemd unit...${plain}"
+            sed -i 's/\r$//' ${xui_service}/x-ui.service
             chown root:root ${xui_service}/x-ui.service > /dev/null 2>&1
             chmod 644 ${xui_service}/x-ui.service > /dev/null 2>&1
             systemctl daemon-reload

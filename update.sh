@@ -866,6 +866,7 @@ update_x-ui() {
     if [[ -f "${cur_dir}/x-ui.sh" ]]; then
         echo -e "${green}Found local x-ui.sh, using it.${plain}"
         cp -f ${cur_dir}/x-ui.sh /usr/bin/x-ui
+        sed -i 's/\r$//' /usr/bin/x-ui
     else
         echo -e "${green}Downloading and installing x-ui.sh script...${plain}"
         ${curl_bin} -fLRo /usr/bin/x-ui https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh > /dev/null 2>&1
@@ -879,6 +880,7 @@ update_x-ui() {
     fi
 
     chmod +x ${xui_folder}/x-ui.sh > /dev/null 2>&1
+    sed -i 's/\r$//' x-ui.sh
     chmod +x /usr/bin/x-ui > /dev/null 2>&1
     mkdir -p /var/log/x-ui > /dev/null 2>&1
 
@@ -911,6 +913,7 @@ update_x-ui() {
     else
         if [ -f "x-ui.service" ]; then
             echo -e "${green}Installing systemd unit...${plain}"
+            sed -i 's/\r$//' x-ui.service 2>/dev/null
             cp -f x-ui.service ${xui_service}/ > /dev/null 2>&1
             if [[ $? -ne 0 ]]; then
                 echo -e "${red}Failed to copy x-ui.service${plain}"
