@@ -28,6 +28,9 @@
 bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 ```
 
+### نصب آفلاین
+اگر سرور شما به اینترنت بین‌الملل دسترسی ندارد، می‌توانید از روش نصب آفلاین استفاده کنید. راهنمای گام‌به‌گام را در [OFFLINE_INSTALL_FA.md](OFFLINE_INSTALL_FA.md) مطالعه کنید.
+
 برای مستندات کامل، لطفاً به [ویکی پروژه](https://github.com/MHSanaei/3x-ui/wiki) مراجعه کنید.
 
 ## تشکر ویژه از

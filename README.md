@@ -28,6 +28,9 @@ As an enhanced fork of the original X-UI project, 3X-UI provides improved stabil
 bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 ```
 
+### Offline Installation
+If your server has no international internet access, you can use the offline installation method. See [OFFLINE_INSTALL_FA.md](OFFLINE_INSTALL_FA.md) for Persian instructions.
+
 For full documentation, please visit the [project Wiki](https://github.com/MHSanaei/3x-ui/wiki).
 
 ## A Special Thanks to
